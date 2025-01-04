@@ -46,3 +46,11 @@ airplanesRoute.openapi(
     return c.json(airplane);
   }
 );
+
+// POST /airplanes
+
+// DELETE /airplanes
+
+// DELETE /airplanes/:id
+
+// PUT or PATCH /airplanes/:id
