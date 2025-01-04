@@ -1,30 +1,21 @@
-import { Hono } from "hono";
-import { html } from "hono/html";
+import { apiReference } from "@scalar/hono-api-reference";
+import { AirplaneSchema, dataAirplanes } from "./data/airplanes";
+import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 
-const app = new Hono();
+import { airplanesRoute } from "./routes/airplanes";
 
-app.get("/api/hello", (c) => {
-  return c.json({
-    ok: true,
-    message: "Hello Hono!",
-  });
-});
+const app = new OpenAPIHono();
 
-app.get("/posts/:id", (c) => {
-  const page = c.req.query("page");
-  const id = c.req.param("id");
-  c.header("X-Message", "Hi!");
-  return c.text(`You want see ${page} of ${id}`);
-});
+const apiRoutes = app.basePath("/").route("/airplanes", airplanesRoute);
 
-app.get("/:username", (c) => {
-  const { username } = c.req.param();
-  return c.html(
-    html`<!DOCTYPE html>
-      <h1>Hello! ${username}!</h1>`
-  );
-});
-
-app.post("/posts", (c) => c.text("Created!", 201));
+apiRoutes
+  .doc("/openapi.json", {
+    openapi: "3.1.1",
+    info: {
+      title: "Airplanes API",
+      version: "1.0.0",
+    },
+  })
+  .get("/", apiReference({ spec: { url: "/openapi.json" } }));
 
 export default app;
