@@ -1,31 +1,10 @@
+import { apiReference } from "@scalar/hono-api-reference";
 import { AirplaneSchema, dataAirplanes } from "./data/airplanes";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 
 const app = new OpenAPIHono();
 
-app.openapi(
-  createRoute({
-    method: "get",
-    path: "/",
-    responses: {
-      200: {
-        description: "Welcome message",
-        content: {
-          "application/json": {
-            schema: z.object({ message: z.string(), openapi: z.string() }),
-          },
-        },
-      },
-    },
-  }),
-  (c) => {
-    return c.json({
-      message: "Airplanes API",
-      openapi: "/openapi.json",
-    });
-  }
-);
-
+// GET /airplanes
 app.openapi(
   createRoute({
     method: "get",
@@ -42,16 +21,13 @@ app.openapi(
   }
 );
 
+// GET /airplanes/:id
 app.openapi(
   createRoute({
     method: "get",
     path: "/airplanes/:id",
-    params: {
-      id: {
-        description: "Airplane ID",
-        required: true,
-        schema: z.number(),
-      },
+    request: {
+      params: z.object({ id: z.coerce.number().int().positive() }),
     },
     responses: {
       404: { description: "Airplane not found" },
@@ -62,7 +38,8 @@ app.openapi(
     },
   }),
   (c) => {
-    const id = Number(c.req.param("id"));
+    const { id } = c.req.valid("param");
+
     const airplane = dataAirplanes.find((airplane) => airplane.id === id);
 
     if (!airplane) return c.notFound();
@@ -78,5 +55,7 @@ app.doc("/openapi.json", {
     version: "1.0.0",
   },
 });
+
+app.get("/", apiReference({ spec: { url: "/openapi.json" } }));
 
 export default app;
