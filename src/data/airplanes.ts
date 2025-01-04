@@ -1,12 +1,23 @@
-type Airplane = {
-  id: number; // 1, 2, 3, etc.
-  manufacturer: string; // Airbus, Boeing, etc.
-  family: string; // 737, A320, etc.
-  year: number; // 1967, 1988, etc.
-};
+import { z } from "zod";
 
-// Airbus A320 1988
-export const dataAirplanes: Airplane[] = [
+const year = new Date().getFullYear();
+
+export const AirplaneSchema = z.object({
+  id: z.number(), // 1, 2, 3, etc.
+  manufacturer: z.string().nonempty(), // Airbus, Boeing, etc.
+  family: z.string().nonempty(), // A320, 737, etc.
+  year: z // 1967, 1988, etc.
+    .number()
+    .int("Year must be an integer")
+    .positive("Year must be positive")
+    .min(1900, { message: "Year must be minimum of 1900" })
+    .max(year, { message: "Year must be maximum of this year" }),
+  isAvailable: z.boolean().optional(),
+});
+
+export type Airplane = z.infer<typeof AirplaneSchema>;
+
+export const dataAirplanes = [
   {
     id: 1,
     manufacturer: "Airbus",
