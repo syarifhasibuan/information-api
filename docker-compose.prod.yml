@@ -1,0 +1,17 @@
+services:
+  backend:
+    image: airplanes-api
+    build:
+      context: .
+    ports:
+      - "3000:3000"
+    depends_on:
+      - database
+  database:
+    image: postgres:alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: airplanes_user
+      POSTGRES_PASSWORD: airplanes_password
+      POSTGRES_DB: airplanes_database

@@ -1,0 +1,9 @@
+services:
+  database:
+    image: postgres:alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: airplanes_user
+      POSTGRES_PASSWORD: airplanes_password
+      POSTGRES_DB: airplanes_database
