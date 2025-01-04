@@ -1,5 +1,5 @@
 {
-  "name": "information-api",
+  "name": "airplanes-api",
   "scripts": {
     "dev": "bun run --hot src/index.ts"
   },
