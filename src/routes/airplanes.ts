@@ -6,9 +6,13 @@ let airplanes = dataAirplanes;
 
 export const airplanesRoute = new OpenAPIHono();
 
+const tags = ["Airplanes"];
+
 // GET /airplanes
 airplanesRoute.openapi(
   createRoute({
+    tags,
+    summary: "Get all airplanes",
     method: "get",
     path: "/",
     responses: {
@@ -29,6 +33,7 @@ airplanesRoute.openapi(
 // GET /airplanes/:id
 airplanesRoute.openapi(
   createRoute({
+    tags,
     method: "get",
     path: "/:id",
     request: {
@@ -56,6 +61,7 @@ airplanesRoute.openapi(
 // POST /airplanes
 airplanesRoute.openapi(
   createRoute({
+    tags,
     method: "post",
     path: "/",
     request: {
@@ -90,6 +96,7 @@ airplanesRoute.openapi(
 // DELETE /airplanes
 airplanesRoute.openapi(
   createRoute({
+    tags,
     method: "delete",
     path: "/",
     responses: {
@@ -106,6 +113,7 @@ airplanesRoute.openapi(
 // DELETE /airplanes/:id
 airplanesRoute.openapi(
   createRoute({
+    tags,
     method: "delete",
     path: "/:id",
     request: {
@@ -132,6 +140,7 @@ airplanesRoute.openapi(
 // PATCH /airplanes/:id
 airplanesRoute.openapi(
   createRoute({
+    tags,
     method: "patch",
     path: "/:id",
     request: {
