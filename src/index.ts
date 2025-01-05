@@ -1,6 +1,5 @@
 import { apiReference } from "@scalar/hono-api-reference";
-import { AirplaneSchema, dataAirplanes } from "./data/airplanes";
-import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
+import { OpenAPIHono } from "@hono/zod-openapi";
 
 import { airplanesRoute } from "./routes/airplanes";
 

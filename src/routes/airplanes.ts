@@ -1,5 +1,8 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { AirplaneSchema, dataAirplanes } from "../data/airplanes";
+import { generateId } from "../utils/id";
+
+let airplanes = dataAirplanes;
 
 export const airplanesRoute = new OpenAPIHono();
 
@@ -16,9 +19,12 @@ airplanesRoute.openapi(
     },
   }),
   (c) => {
-    return c.json(dataAirplanes);
+    return c.json(airplanes);
   }
 );
+
+// GET /airplanes/search?name=... [{...}]
+// TODO
 
 // GET /airplanes/:id
 airplanesRoute.openapi(
@@ -39,7 +45,7 @@ airplanesRoute.openapi(
   (c) => {
     const { id } = c.req.valid("param");
 
-    const airplane = dataAirplanes.find((airplane) => airplane.id === id);
+    const airplane = airplanes.find((airplane) => airplane.id === id);
 
     if (!airplane) return c.notFound();
 
@@ -54,24 +60,30 @@ airplanesRoute.openapi(
     path: "/",
     request: {
       body: {
-        description: "Airplane to add",
-        content: { "application/json": { schema: AirplaneSchema } },
+        description: "New airplane data to add",
+        content: {
+          "application/json": { schema: AirplaneSchema.omit({ id: true }) },
+        },
       },
     },
     responses: {
       201: {
-        description: "New airplane submitted",
+        description: "New airplane added",
         content: { "application/json": { schema: AirplaneSchema } },
       },
     },
   }),
   (c) => {
-    const airplane = c.req.valid("json");
+    const body = c.req.valid("json");
 
-    airplane.id = dataAirplanes[dataAirplanes.length - 1].id + 1;
-    dataAirplanes.push(airplane);
+    const newAirplaneData = {
+      ...body,
+      id: generateId(airplanes),
+    };
 
-    return c.json(airplane);
+    airplanes = [...airplanes, newAirplaneData];
+
+    return c.json(newAirplaneData, 201);
   }
 );
 
@@ -81,18 +93,13 @@ airplanesRoute.openapi(
     method: "delete",
     path: "/",
     responses: {
-      200: {
-        description: "All airplanes deleted",
-      },
+      200: { description: "All airplanes deleted" },
     },
   }),
   (c) => {
-    dataAirplanes.length = 0;
+    airplanes = [];
 
-    return c.json({
-      message: "All airplanes deleted",
-      airplanes: dataAirplanes,
-    });
+    return c.json({ message: "All airplanes deleted" });
   }
 );
 
@@ -112,31 +119,30 @@ airplanesRoute.openapi(
   (c) => {
     const { id } = c.req.valid("param");
 
-    const airplaneIndex = dataAirplanes.findIndex(
-      (airplane) => airplane.id === id
-    );
+    const updatedAirplanes = airplanes.filter((airplane) => airplane.id !== id);
 
-    if (airplaneIndex === -1) return c.notFound();
+    if (airplanes.length === updatedAirplanes.length) return c.notFound();
 
-    dataAirplanes.splice(airplaneIndex, 1);
+    airplanes = updatedAirplanes;
 
-    return c.json({
-      message: "Airplane " + id + " deleted",
-      airplanes: dataAirplanes,
-    });
+    return c.json({ message: "Airplane deleted" });
   }
 );
 
-// PUT or PATCH /airplanes/:id
+// PATCH /airplanes/:id
 airplanesRoute.openapi(
   createRoute({
-    method: "put",
+    method: "patch",
     path: "/:id",
     request: {
       params: z.object({ id: z.coerce.number().int().positive() }),
       body: {
-        description: "Airplane to update",
-        content: { "application/json": { schema: AirplaneSchema } },
+        description: "New airplane data to update",
+        content: {
+          "application/json": {
+            schema: AirplaneSchema.omit({ id: true }).partial(),
+          },
+        },
       },
     },
     responses: {
@@ -146,16 +152,18 @@ airplanesRoute.openapi(
   }),
   (c) => {
     const { id } = c.req.valid("param");
-    const airplane = c.req.valid("json");
+    const body = c.req.valid("json");
 
-    const airplaneIndex = dataAirplanes.findIndex(
-      (airplane) => airplane.id === id
-    );
+    const updatedAirplanes = airplanes.map((airplane) => {
+      if (airplane.id === id) return { ...airplane, ...body };
+      return airplane;
+    });
 
-    if (airplaneIndex === -1) return c.notFound();
+    airplanes = updatedAirplanes;
 
-    dataAirplanes[airplaneIndex] = airplane;
+    const updatedAirplane = airplanes.find((airplane) => airplane.id === id);
+    if (!updatedAirplane) return c.notFound();
 
-    return c.json(airplane);
+    return c.json(updatedAirplane);
   }
 );
