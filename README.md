@@ -11,7 +11,7 @@ List of airplanes with their respective manufacturers and models.
 | `POST`   | `/airplanes`     | Add a new airplane     |
 | `DELETE` | `/airplanes`     | Delete all airplanes   |
 | `DELETE` | `/airplanes/:id` | Delete airplane by id  |
-| `PATCH`  | `/airplanes/:id` | Update airplane by id  |
+| `PUT`    | `/airplanes/:id` | Update airplane by id  |
 
 ## Development
 
