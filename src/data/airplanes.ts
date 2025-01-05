@@ -6,7 +6,7 @@ export const AirplaneSchema = z.object({
   id: z.number(), // 1, 2, 3, etc.
   manufacturer: z.string().nonempty(), // Airbus, Boeing, etc.
   family: z.string().nonempty(), // A320, 737, etc.
-  year: z // 1967, 1988, etc.
+  year: z // 1988, 1967, etc.
     .number()
     .int("Year must be an integer")
     .positive("Year must be positive")
@@ -17,7 +17,7 @@ export const AirplaneSchema = z.object({
 
 export type Airplane = z.infer<typeof AirplaneSchema>;
 
-export const dataAirplanes = [
+export const dataAirplanes: Airplane[] = [
   {
     id: 1,
     manufacturer: "Airbus",
