@@ -1,8 +1,14 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
-import { AirplaneSchema, dataAirplanes } from "../data/airplanes";
+
+import { prisma } from "../lib/prisma";
+import {
+  AirplaneSchema,
+  SeedAirplaneSchema,
+  seedDataAirplanes,
+} from "../data/airplanes";
 import { generateId } from "../utils/id";
 
-let airplanes = dataAirplanes;
+let airplanesVariable = seedDataAirplanes;
 
 export const airplanesRoute = new OpenAPIHono();
 
@@ -18,11 +24,17 @@ airplanesRoute.openapi(
     responses: {
       200: {
         description: "Get all airplanes",
-        content: { "application/json": { schema: z.array(AirplaneSchema) } },
+        content: {
+          "application/json": { schema: z.array(AirplaneSchema) },
+        },
       },
     },
   }),
-  (c) => {
+  async (c) => {
+    const airplanes = await prisma.airplane.findMany({
+      include: { manufacturer: true },
+    });
+
     return c.json(airplanes);
   }
 );
@@ -43,14 +55,14 @@ airplanesRoute.openapi(
       404: { description: "Airplane not found" },
       200: {
         description: "Get one airplane by ID",
-        content: { "application/json": { schema: AirplaneSchema } },
+        content: { "application/json": { schema: SeedAirplaneSchema } },
       },
     },
   }),
   (c) => {
     const { id } = c.req.valid("param");
 
-    const airplane = airplanes.find((airplane) => airplane.id === id);
+    const airplane = airplanesVariable.find((airplane) => airplane.id === id);
 
     if (!airplane) return c.notFound();
 
@@ -68,14 +80,14 @@ airplanesRoute.openapi(
       body: {
         description: "New airplane data to add",
         content: {
-          "application/json": { schema: AirplaneSchema.omit({ id: true }) },
+          "application/json": { schema: SeedAirplaneSchema.omit({ id: true }) },
         },
       },
     },
     responses: {
       201: {
         description: "New airplane added",
-        content: { "application/json": { schema: AirplaneSchema } },
+        content: { "application/json": { schema: SeedAirplaneSchema } },
       },
     },
   }),
@@ -84,10 +96,10 @@ airplanesRoute.openapi(
 
     const newAirplaneData = {
       ...body,
-      id: generateId(airplanes),
+      id: generateId(airplanesVariable),
     };
 
-    airplanes = [...airplanes, newAirplaneData];
+    airplanesVariable = [...airplanesVariable, newAirplaneData];
 
     return c.json(newAirplaneData, 201);
   }
@@ -104,7 +116,7 @@ airplanesRoute.openapi(
     },
   }),
   (c) => {
-    airplanes = [];
+    airplanesVariable = [];
 
     return c.json({ message: "All airplanes deleted" });
   }
@@ -127,11 +139,14 @@ airplanesRoute.openapi(
   (c) => {
     const { id } = c.req.valid("param");
 
-    const updatedAirplanes = airplanes.filter((airplane) => airplane.id !== id);
+    const updatedAirplanes = airplanesVariable.filter(
+      (airplane) => airplane.id !== id
+    );
 
-    if (airplanes.length === updatedAirplanes.length) return c.notFound();
+    if (airplanesVariable.length === updatedAirplanes.length)
+      return c.notFound();
 
-    airplanes = updatedAirplanes;
+    airplanesVariable = updatedAirplanes;
 
     return c.json({ message: "Airplane deleted" });
   }
@@ -149,7 +164,7 @@ airplanesRoute.openapi(
         description: "New airplane data to update",
         content: {
           "application/json": {
-            schema: AirplaneSchema.omit({ id: true }).partial(),
+            schema: SeedAirplaneSchema.omit({ id: true }).partial(),
           },
         },
       },
@@ -163,14 +178,16 @@ airplanesRoute.openapi(
     const { id } = c.req.valid("param");
     const body = c.req.valid("json");
 
-    const updatedAirplanes = airplanes.map((airplane) => {
+    const updatedAirplanes = airplanesVariable.map((airplane) => {
       if (airplane.id === id) return { ...airplane, ...body };
       return airplane;
     });
 
-    airplanes = updatedAirplanes;
+    airplanesVariable = updatedAirplanes;
 
-    const updatedAirplane = airplanes.find((airplane) => airplane.id === id);
+    const updatedAirplane = airplanesVariable.find(
+      (airplane) => airplane.id === id
+    );
     if (!updatedAirplane) return c.notFound();
 
     return c.json(updatedAirplane);
