@@ -1,23 +1,11 @@
-import * as pg from "pg";
+import { PrismaClient } from "@prisma/client";
 
-const client = new pg.Client({
-  connectionString: process.env.DATABASE_URL,
+const prisma = new PrismaClient({
+  log: [{ emit: "stdout", level: "query" }],
 });
-await client.connect();
 
-type Airplane = {
-  id: number;
-  name: string;
-  year: number;
-};
+const airplanes = await prisma.airplane.findMany({
+  include: { manufacturer: { select: { name: true } } },
+});
 
-try {
-  const result = await client.query(`SELECT * FROM "Airplane"`);
-  const airplanes: Airplane[] = result.rows;
-
-  console.log({ airplanes });
-} catch (error) {
-  console.error("Failed to connect to the database", error);
-} finally {
-  await client.end();
-}
+console.log(airplanes);
