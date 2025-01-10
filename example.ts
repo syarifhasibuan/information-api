@@ -12,7 +12,7 @@ type Airplane = {
 };
 
 try {
-  const result = await client.query("SELECT * FROM Airplane");
+  const result = await client.query(`SELECT * FROM "Airplane"`);
   const airplanes: Airplane[] = result.rows;
 
   console.log({ airplanes });
